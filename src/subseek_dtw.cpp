@@ -28,17 +28,17 @@ search_res_t subseek_dtw(value_t x[QUERY_LEN], value_t y[REF_LEN], int m, int n)
      */
 
     // Cost matrix that stores only previous two rows and current row
-    value_t cost[3][QUERY_LEN];
+    value_t cost[3][QUERY_LEN] = {0};
     int curr = 0, p1 = 1, p2 = 2;
 
     // First QUERY_LEN sequence
     int curr_y;
     cost[p2][0] = fabs(x[0] - y[0]);
-    cost[p1][0] = cost[2][0];
-    cost[p1][1] = fabs(x[1] - y[0]) + cost[2][0];
+    cost[p1][0] = fabs(x[0] - y[1]);
+    cost[p1][1] = fabs(x[1] - y[0]) + cost[p2][0];
     for (curr_y = 2; curr_y < m; curr_y++) {
         // First curr cell, no top and top-left
-        cost[curr][0] = cost[p1][0];
+        cost[curr][0] = fabs(x[0]- y[curr_y]);
 
         // All in between curr cells
         for (int c = 1; c < curr_y; c++) {
@@ -46,7 +46,7 @@ search_res_t subseek_dtw(value_t x[QUERY_LEN], value_t y[REF_LEN], int m, int n)
         }
 
         // Last curr cell, no left
-        cost[curr][curr_y] = cost[p1][curr_y-1];
+        cost[curr][curr_y] = fabs(x[curr_y] - y[0]) + cost[p1][curr_y-1];
 
         // Rotate index
         curr = cost_index_rotate(curr);
@@ -60,7 +60,7 @@ search_res_t subseek_dtw(value_t x[QUERY_LEN], value_t y[REF_LEN], int m, int n)
     min.position = 0;
     for (curr_y = m; curr_y < n; curr_y++) {
         // First curr cell, no top and top-left
-        cost[curr][0] = cost[p1][0];
+        cost[curr][0] = fabs(x[0] - y[curr_y]);
 
         // The rest of curr cells
         for (int c = 1; c < m; c++) {
@@ -70,7 +70,7 @@ search_res_t subseek_dtw(value_t x[QUERY_LEN], value_t y[REF_LEN], int m, int n)
         // Update the minimum
         if (cost[curr][m-1] < min.dist) {
             min.dist = cost[curr][m-1];
-            min.position = curr_y;
+            min.position = curr_y - m + 1;
         }
 
         // Rotate index
@@ -79,16 +79,15 @@ search_res_t subseek_dtw(value_t x[QUERY_LEN], value_t y[REF_LEN], int m, int n)
         p2 = cost_index_rotate(p2); 
     }
 
-    // Last QUERY_LEN sequence
     for (int curr_x = 1; curr_x < m; curr_x++) {
-        for (int c = 0; c < m-curr_x; c++) {
-            cost[curr][c] = fabs(x[curr_x + c] - y[n-1 - c]) + min3(cost[p1][c], cost[p1][c+1], cost[p2][c]);
+        for (int c = curr_x; c < m; c++) {
+            cost[curr][c] = fabs(x[c] - y[n-curr_x]) + min3(cost[p1][c-1], cost[p1][c], cost[p2][c-1]);
         }
-        
-        // Update minimum
-        if (cost[curr][m-curr_x-1] < min.dist) {
-            min.dist = cost[curr][m-curr_x -1];
-            min.position = n - (m-curr_x);
+
+        // Update the minimum
+        if (cost[curr][m-1] < min.dist) {
+            min.dist = cost[curr][m-1];
+            min.position = curr_y - m + 1;
         }
 
         // Rotate index
