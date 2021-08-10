@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <sys/time.h>
-#include "subseek_dtw.h"
-#include "reference.h"
+#include "../include/subseek_dtw.h"
+#include "../include/reference.h"
 
 int main () {
     struct timeval t1, t2;

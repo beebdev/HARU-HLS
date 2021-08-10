@@ -2,7 +2,7 @@
 #define SUBSEEKDTW
 
 #define QUERY_LEN 250
-#define REF_LEN 48497
+#define REF_LEN 1250
 
 typedef float value_t;
 

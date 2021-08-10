@@ -55,3 +55,5 @@ dkms.conf
 # project dependant
 top
 .vscode
+vivado*
+sdtw_accelerator
