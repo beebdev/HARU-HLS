@@ -56,4 +56,4 @@ dkms.conf
 top
 .vscode
 vivado*
-sdtw_accelerator
+sDTW_HLS/
