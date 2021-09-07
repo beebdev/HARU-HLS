@@ -66,7 +66,7 @@ search_result_t sDTW(value_t x[QUERY_LEN], value_t y[REF_LEN]) {
 /* Wrapper for the actual sDTW algorithm
  * Unpacks the streamed data from AXI stream into sequence x and y
  * Then calls the sDTW algorithm and transfers the data back */
-typedef ap_axiu<32, 4, 5, 5> AXI_VAL;
+// typedef ap_axiu<32, 4, 5, 5> AXI_VAL;
 template <typename T, int U, int TI, int TD>
 void wrapped_sDTW(AXI_VAL in_stream[QUERY_LEN + REF_LEN], value_t *min_dist, int *min_pos) {
     T query[QUERY_LEN], reference[REF_LEN];
