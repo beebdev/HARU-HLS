@@ -7,17 +7,16 @@ open_project sDTW_HLS
 
 set_top subseek_dtw
 
-add_files src/subseek_dtw.c
-add_files -tb src/top_subseek_dtw.c -cflags "-Wno-unknown-pragmas" -csimflags "-Wno-unknown-pragmas"
-
+add_files src/subseek_dtw.cpp
+add_files -tb src/top_subseek_dtw.cpp -cflags "-Wno-unknown-pragmas" -csimflags "-Wno-unknown-pragmas"
 
 ###############################################################################
 # Baseline solution
 ###############################################################################
-open_solution "baseline"
-set_part $part
-create_clock -period 10
-csim_design -clean
+# open_solution "baseline"
+# set_part $part
+# create_clock -period 10
+# csim_design -clean
 
 ###############################################################################
 # Baseline solution
@@ -25,8 +24,8 @@ csim_design -clean
 open_solution "accelerated"
 set_part $part
 create_clock -period 10
-source "./directive.tcl"
+# source "./directive.tcl"
 csynth_design
-export_design -format ip_catalog
+# export_design -format ip_catalog
 
 exit

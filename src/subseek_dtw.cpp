@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <math.h>
 #include "../include/subseek_dtw.h"
-// #include <ap_axi_sdata.h>
-
 
 /* Finds the minimum of the three parameter values */
 value_t min3(value_t a, value_t b, value_t c) {
@@ -53,54 +51,55 @@ search_result_t sDTW(value_t x[QUERY_LEN], value_t y[REF_LEN]) {
         top = 0;
 
         // Update minimum
-        if (cost[QUERY_LEN-1] < min_dist) {
+        if (cost[QUERY_LEN-1] < min.dist) {
             min.dist = cost[QUERY_LEN-1];
             min.end_position = c;
         }
     }
 
-    return res;
+    return min;
 }
 
 
 /* Wrapper for the actual sDTW algorithm
  * Unpacks the streamed data from AXI stream into sequence x and y
  * Then calls the sDTW algorithm and transfers the data back */
-// typedef ap_axiu<32, 4, 5, 5> AXI_VAL;
 template <typename T, int U, int TI, int TD>
-void wrapped_sDTW(AXI_VAL in_stream[QUERY_LEN + REF_LEN], value_t *min_dist, int *min_pos) {
-    T query[QUERY_LEN], reference[REF_LEN];
+void wrapped_sDTW(AXI_VAL in_stream[QUERY_LEN + REF_LEN], ap_uint<1> opcode, value_t *min_dist, int *min_pos) {
+    if (opcode == 1) {
+        T query[QUERY_LEN];
 
-    /* Stream in x sequence */
-    for (int i = 0; i < Q_LEN; i++) {
-        #pragma HLS PIPELINE
-        query[i] = pop_stream<T, U, TI, TD>(in_stream[i]);
+		/* Stream in x sequence */
+		unpack_query: for (int i = 0; i < QUERY_LEN; i++) {
+			#pragma HLS PIPELINE
+			query[i] = pop_stream<T, U, TI, TD>(in_stream[i]);
+		}
+
+        /* Start sDTW */
+        search_result_t res = sDTW(query, reference);
+
+        /* Pass results to output variables */
+        *min_dist = res.dist;
+        *min_pos = res.end_position;
+    } else {
+		/* Stream in y sequence */
+		unpack_reference: for (int i = 0; i < REF_LEN; i++) {
+			#pragma HLS PIPELINE
+			reference[i] = pop_stream<T, U, TI, TD>(in_stream[i]);
+		}
     }
-
-    /* Stream in y sequence */
-    for (int i = 0; i < R_LEN; i++) {
-        #pragma HLS PIPELINE
-        reference[i] = pop_stream<T, U, TI, TD>(in_stream[i]);
-    }
-
-    /* Start sDTW */
-    search_result_t res = sDTW(query, reference);
-
-    /* Pass results to output variables */
-    *min_dist = res.dist;
-    *min_pos = res.end_position;
 }
 
 
 /* Top level design that will be synthesized into RTL */
-void subseek_dtw(AXI_VAL INPUT_STREAM[QUERY_LEN + REF_LEN], value_t *min_dist, int *min_pos) {
+void subseek_dtw(AXI_VAL INPUT_STREAM[QUERY_LEN + REF_LEN], ap_int<1> opcode, value_t *min_dist, int *min_pos) {
     /* Port IO interface */
     #pragma HLS INTERFACE axis port=INPUT_STREAM
-    #pragma HLS INTERFACE s_axilite port=min_dist bundle=CONTROL_BUSS
-    #pragma HLS INTERFACE s_axilite port=min_pos bundle=CONTROL_BUSS
+	#pragma HLS INTERFACE s_axilite port=opcode bundle=CONTROL_BUS
+    #pragma HLS INTERFACE s_axilite port=min_dist bundle=CONTROL_BUS
+    #pragma HLS INTERFACE s_axilite port=min_pos bundle=CONTROL_BUS
     #pragma HLS INTERFACE s_axilite port=return bundle=CONTROL_BUS
 
     /* Call wrapper for sDTW */
-    // TODO: update the template values
-    wrapped_sDTW<value_t, 4, 5, 5>(INPUT_STREAM, min_dist, min_pos);
+    wrapped_sDTW<value_t, 4, 5, 5>(INPUT_STREAM, opcode, min_dist, min_pos);
 }
