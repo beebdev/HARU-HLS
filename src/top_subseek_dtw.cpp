@@ -6,7 +6,7 @@
 
 int main() {
     struct timeval t1, t2;
-    
+
     gettimeofday(&t1, NULL);
     search_result_t res = subseek_dtw(strand_sample, reference[0]);
     gettimeofday(&t2, NULL);
