@@ -57,3 +57,5 @@ top
 .vscode
 vivado*
 sDTW_HLS/
+sDTW_standalone/
+sDTW_Wrapped/

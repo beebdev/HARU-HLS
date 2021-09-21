@@ -1,24 +1,14 @@
 #include <stdio.h>
-#include <sys/time.h>
-#include "../include/subseek_dtw.h"
-#include "../include/reference_int.h"
 
+#include "../include/reference_int.h"
+#include "../include/subseek_dtw.h"
 
 int main() {
-    struct timeval t1, t2;
+    search_result_t expected_f, expected_r;
+    expected_f = sDTW(strand_sample, reference_eg[0]);
+    expected_r = sDTW(strand_sample, reference_eg[1]);
 
-    gettimeofday(&t1, NULL);
-    search_result_t res = subseek_dtw(strand_sample, reference[0]);
-    gettimeofday(&t2, NULL);
-
-    double total_duration = (t2.tv_sec - t1.tv_sec) * 1000;
-    total_duration += (t2.tv_usec - t1.tv_usec) / 1000;
-    printf("Time: %lfms\n", total_duration);
-    printf("Distance: %d\n", res.dist);
-    printf("Position: %d\n", res.end_position);
-
-    res = subseek_dtw(strand_sample, reference[1]);
-    printf("Distance: %d\n", res.dist);
-    printf("Position: %d\n", res.end_position);
+    printf("F: @%d [%d]", expected_f.end_position, expected_f.dist);
+    printf("R: @%d [%d]", expected_r.end_position, expected_r.dist);
     return 0;
 }
