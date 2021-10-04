@@ -1,7 +1,7 @@
 #ifndef REFERENCE
 #define REFERENCE
 
-#include "../include/subseek_dtw.h"
+#include "subseek_dtw.h"
 
 value_t strand_sample[250] = {
 	-4, 1, -2, 7, 19, 1, -12, 3, -31, -4,
