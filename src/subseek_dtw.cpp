@@ -24,8 +24,8 @@ search_result_t sDTW(value_t x[QUERY_LEN], value_t y[REF_LEN]) {
     min.dist = VALUE_INF;
     min.end_position = 0;
 
-/* Init cost column */
 cost_init_loop:
+    /* Init cost column */
     for (int r = 0; r < QUERY_LEN; r++) {
 #pragma HLS UNROLL
         cost[r] = VALUE_INF;
@@ -67,48 +67,44 @@ seq_y_loop:
  * Unpacks the streamed data from AXI stream into sequence x and y
  * Then calls the sDTW algorithm and transfers the data back */
 template <typename T, int U, int TI, int TD>
-void wrapped_sDTW(AXI_VAL in_stream[REF_LEN + QUERY_LEN], int opcode, value_t *min_dist,
-                  int *min_pos, value_t *val) {
-    if (opcode == 0) {
-    /* Stream in y sequence */
-    unpack_reference:
-        for (int i = 0; i < REF_LEN; i++) {
-#pragma HLS PIPELINE
-            reference[i] = pop_stream<T, U, TI, TD>(in_stream[i]);
-        }
+void wrapped_sDTW(AXI_VAL in_stream[REF_LEN + QUERY_LEN], value_t *min_dist, int *min_pos,
+                  value_t *val) {
+    /* Reference and query buffers */
+    T reference[REF_LEN], query[QUERY_LEN];
 
-        /* Set return value to -1 */
-        *min_dist = -1;
-        *min_pos = -1;
-        *val = reference[0];
-    } else if (opcode == 1) {
-        /* Stream in query */
-        T query[QUERY_LEN];
-    unpack_query:
-        for (int i = 0; i < QUERY_LEN; i++) {
+unpack_reference:
+    /* Stream in y sequence */
+    for (int i = 0; i < REF_LEN; i++) {
 #pragma HLS PIPELINE
-            query[i] = pop_stream<T, U, TI, TD>(in_stream[i]);
-        }
-        /* Start sDTW */
-        search_result_t res = sDTW(query, reference);
-        /* Pass results to output variables */
-        *min_dist = res.dist;
-        *min_pos = res.end_position;
-        *val = reference[0];
+        reference[i] = pop_stream<T, U, TI, TD>(in_stream[i]);
     }
+
+    /* Stream in query */
+unpack_query:
+    for (int i = 0; i < QUERY_LEN; i++) {
+#pragma HLS PIPELINE
+        query[i] = pop_stream<T, U, TI, TD>(in_stream[i]);
+    }
+
+    /* Start sDTW */
+    search_result_t res = sDTW(query, reference);
+
+    /* Pass results to output variables */
+    *min_dist = res.dist;
+    *min_pos = res.end_position;
+    *val = reference[0];
 }
 
 /* Top level design that will be synthesized into RTL */
-void subseek_dtw(AXI_VAL INPUT_STREAM[REF_LEN], bool opcode, value_t *min_dist, int *min_pos,
+void subseek_dtw(AXI_VAL INPUT_STREAM[REF_LEN + QUERY_LEN], value_t *min_dist, int *min_pos,
                  value_t *val) {
     /* Port IO interface */
 #pragma HLS INTERFACE axis port = INPUT_STREAM
-#pragma HLS INTERFACE s_axilite port = opcode bundle = CONTROL_BUS
 #pragma HLS INTERFACE s_axilite port = min_dist bundle = CONTROL_BUS
 #pragma HLS INTERFACE s_axilite port = min_pos bundle = CONTROL_BUS
 #pragma HLS INTERFACE s_axilite port = val bundle = CONTROL_BUS
 #pragma HLS INTERFACE s_axilite port = return bundle = CONTROL_BUS
 
     /* Call wrapper for sDTW */
-    wrapped_sDTW<value_t, 4, 5, 5>(INPUT_STREAM, opcode, min_dist, min_pos, val);
+    wrapped_sDTW<value_t, 4, 5, 5>(INPUT_STREAM, min_dist, min_pos, val);
 }
