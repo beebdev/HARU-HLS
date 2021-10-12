@@ -81,7 +81,7 @@ search_result_t wrapped_sDTW(AXI_VAL query_in[QUERY_LEN], AXI_VAL reference_in[R
 	unpack_ref:
 		for (int i = 0; i < REF_LEN; i++) {
 #pragma HLS PIPELINE
-			reference[i] = pop_stream<T, U, TI, TD>(reference_in[i]);
+			reference[i] = (value_t)pop_stream<stream_t, U, TI, TD>(reference_in[i]);
 		}
 		res.dist = 0;
 		res.pos = 0;
@@ -91,7 +91,7 @@ search_result_t wrapped_sDTW(AXI_VAL query_in[QUERY_LEN], AXI_VAL reference_in[R
 	unpack_query:
 		for (int i = 0; i < QUERY_LEN; i++) {
 #pragma HLS PIPELINE
-			query[i] = pop_stream<T, U, TI, TD>(query_in[i]);
+			query[i] = (value_t)pop_stream<stream_t, U, TI, TD>(query_in[i]);
 		}
 		/* Start sDTW */
 		res = sDTW(query, reference);

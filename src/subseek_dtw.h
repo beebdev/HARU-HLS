@@ -11,17 +11,15 @@
 #define REF_LEN 48497
 
 typedef ap_int<BIT_WIDTH> value_t;
+typedef ap_int<16> stream_t;
 // typedef int16_t value_t;
 
-typedef ap_axiu<sizeof(value_t) * 8, 4, 5, 5> AXI_VAL;
+typedef ap_axiu<sizeof(stream_t) * 8, 4, 5, 5> AXI_VAL;
 
 typedef struct search_result_t {
 	int pos;
 	int dist;
 } search_result_t;
-
-/* Reference Buffer */
-// value_t reference[REF_LEN];
 
 /* Function Prototypes */
 search_result_t subseek_dtw(AXI_VAL query[QUERY_LEN], AXI_VAL reference[REF_LEN], int opcode);
