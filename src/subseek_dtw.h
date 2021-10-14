@@ -24,6 +24,7 @@ typedef struct search_result_t {
 /* Function Prototypes */
 search_result_t subseek_dtw(AXI_VAL query[QUERY_LEN]);
 search_result_t sDTW(seqval_t x[QUERY_LEN], seqval_t y[REF_LEN]);
+void reference_loader(AXI_VAL ref_stream[REF_LEN], seqval_t reference[REF_LEN]);
 
 /* Pop functions for AXI Stream */
 template <typename T, int U, int TI, int TD>

@@ -1,7 +1,8 @@
-#include "subseek_dtw.h"
+
 
 #include <math.h>
 #include <stdio.h>
+#include "subseek_dtw.h"
 #include "reference_int.h"
 
 /* Finds the minimum of the three parameter values */
@@ -21,7 +22,7 @@ search_result_t sDTW(seqval_t x[QUERY_LEN], seqval_t y[REF_LEN]) {
 
 	/* Cost array - completely partitioned */
 	value_t cost[QUERY_LEN];
-#pragma HLS ARRAY_PARTITION variable = cost complete dim = 1
+#pragma HLS ARRAY_PARTITION variable=cost complete dim=1
 
 	search_result_t min;
 	min.dist = VALUE_INF;
@@ -41,7 +42,7 @@ cost_init_loop:
 
 seq_y_loop:
 	for (int c = 0; c < REF_LEN; c++) {
-#pragma HLS pipeline II = 1
+#pragma HLS pipeline II=1
 	seq_x_loop:
 		for (int r = 0; r < QUERY_LEN; r++) {
 			left = cost[r];
@@ -70,9 +71,7 @@ seq_y_loop:
  * Unpacks the streamed data from AXI stream into sequence x and y
  * Then calls the sDTW algorithm and transfers the data back */
 template <int U, int TI, int TD>
-search_result_t wrapped_sDTW(AXI_VAL query_in[QUERY_LEN]) {
-	/* Use the reference_eg from reference_int.h */
-#pragma HLS RESOURCE variable = reference_eg core = RAM_2P_BRAM
+search_result_t wrapped_sDTW(AXI_VAL query_in[QUERY_LEN], seqval_t reference[REF_LEN]) {
 
 	/* Stream in query */
 	seqval_t query[QUERY_LEN];
@@ -86,11 +85,12 @@ unpack_query:
 }
 
 /* Top level design that will be synthesized into RTL */
-search_result_t subseek_dtw(AXI_VAL query[QUERY_LEN]) {
+search_result_t subseek_dtw(AXI_VAL query[QUERY_LEN], seqval_t reference[REF_LEN]) {
 	/* Port IO interface */
-#pragma HLS INTERFACE axis port = query
-#pragma HLS INTERFACE s_axilite port = return bundle = CONTROL_BUS
+#pragma HLS INTERFACE axis port=query
+#pragma HLS INTERFACE bram port=reference
+#pragma HLS INTERFACE s_axilite port=return bundle=CONTROL_BUS
 
 	/* Call wrapper for sDTW */
-	return wrapped_sDTW<4, 5, 5>(query);
+	return wrapped_sDTW<4, 5, 5>(query, reference);
 }
