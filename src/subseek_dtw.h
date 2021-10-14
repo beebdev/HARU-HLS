@@ -5,16 +5,16 @@
 #include "ap_int.h"
 // #include <stdint.h>
 
-#define BIT_WIDTH 16
-#define VALUE_INF (1 << (BIT_WIDTH - 1)) - 1
+#define SEQ_BIT_WIDTH 16
+#define COST_BIT_WIDTH 18
+#define VALUE_INF (1 << (COST_BIT_WIDTH - 1)) - 1
 #define QUERY_LEN 250
 #define REF_LEN 48497
 
-typedef ap_int<BIT_WIDTH> value_t;
-typedef ap_int<16> stream_t;
-// typedef int16_t value_t;
+typedef ap_int<COST_BIT_WIDTH> value_t;
+typedef ap_int<SEQ_BIT_WIDTH> seqval_t;
 
-typedef ap_axiu<sizeof(stream_t) * 8, 4, 5, 5> AXI_VAL;
+typedef ap_axiu<sizeof(seqval_t) * 8, 4, 5, 5> AXI_VAL;
 
 typedef struct search_result_t {
 	int pos;
@@ -22,8 +22,8 @@ typedef struct search_result_t {
 } search_result_t;
 
 /* Function Prototypes */
-search_result_t subseek_dtw(AXI_VAL query[QUERY_LEN], AXI_VAL reference[REF_LEN], int opcode);
-search_result_t sDTW(value_t x[QUERY_LEN], value_t y[REF_LEN]);
+search_result_t subseek_dtw(AXI_VAL query[QUERY_LEN]);
+search_result_t sDTW(seqval_t x[QUERY_LEN], seqval_t y[REF_LEN]);
 
 /* Pop functions for AXI Stream */
 template <typename T, int U, int TI, int TD>

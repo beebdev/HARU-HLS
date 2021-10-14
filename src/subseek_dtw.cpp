@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include "reference_int.h"
 
 /* Finds the minimum of the three parameter values */
 value_t min3(value_t a, value_t b, value_t c) {
@@ -16,7 +17,7 @@ value_t min3(value_t a, value_t b, value_t c) {
 }
 
 /* sDTW kernel */
-search_result_t sDTW(value_t x[QUERY_LEN], value_t y[REF_LEN]) {
+search_result_t sDTW(seqval_t x[QUERY_LEN], seqval_t y[REF_LEN]) {
 
 	/* Cost array - completely partitioned */
 	value_t cost[QUERY_LEN];
@@ -44,7 +45,7 @@ seq_y_loop:
 	seq_x_loop:
 		for (int r = 0; r < QUERY_LEN; r++) {
 			left = cost[r];
-			cost[r] = abs(x[r] - y[c]) + min3(top, left, top_left);
+			cost[r] = (value_t)abs(x[r] - y[c]) + min3(top, left, top_left);
 
 			/* Update dependancy */
 			top_left = left;
@@ -68,45 +69,28 @@ seq_y_loop:
 /* Wrapper for the actual sDTW algorithm
  * Unpacks the streamed data from AXI stream into sequence x and y
  * Then calls the sDTW algorithm and transfers the data back */
-template <typename T, int U, int TI, int TD>
-search_result_t wrapped_sDTW(AXI_VAL query_in[QUERY_LEN], AXI_VAL reference_in[REF_LEN], int load_ref) {
+template <int U, int TI, int TD>
+search_result_t wrapped_sDTW(AXI_VAL query_in[QUERY_LEN]) {
+	/* Use the reference_eg from reference_int.h */
+#pragma HLS RESOURCE variable = reference_eg core = RAM_2P_BRAM
 
-	search_result_t res;
-
-	T reference[REF_LEN];
-#pragma HLS RESOURCE variable = reference core = RAM_2P_BRAM
-
-	if (load_ref) {
-		/* Stream in reference */
-	unpack_ref:
-		for (int i = 0; i < REF_LEN; i++) {
+	/* Stream in query */
+	seqval_t query[QUERY_LEN];
+unpack_query:
+	for (int i = 0; i < QUERY_LEN; i++) {
 #pragma HLS PIPELINE
-			reference[i] = (value_t)pop_stream<stream_t, U, TI, TD>(reference_in[i]);
-		}
-		res.dist = 0;
-		res.pos = 0;
-	} else {
-		/* Stream in query */
-		T query[QUERY_LEN];
-	unpack_query:
-		for (int i = 0; i < QUERY_LEN; i++) {
-#pragma HLS PIPELINE
-			query[i] = (value_t)pop_stream<stream_t, U, TI, TD>(query_in[i]);
-		}
-		/* Start sDTW */
-		res = sDTW(query, reference);
+		query[i] = pop_stream<seqval_t, U, TI, TD>(query_in[i]);
 	}
-	return res;
+	/* Start sDTW */
+	return sDTW(query, reference);
 }
 
 /* Top level design that will be synthesized into RTL */
-search_result_t subseek_dtw(AXI_VAL query[QUERY_LEN], AXI_VAL reference[REF_LEN], int opcode) {
+search_result_t subseek_dtw(AXI_VAL query[QUERY_LEN]) {
 	/* Port IO interface */
 #pragma HLS INTERFACE axis port = query
-#pragma HLS INTERFACE axis port = reference
-#pragma HLS INTERFACE s_axilite port = opcode bundle = CONTROL_BUS
 #pragma HLS INTERFACE s_axilite port = return bundle = CONTROL_BUS
 
 	/* Call wrapper for sDTW */
-	return wrapped_sDTW<value_t, 4, 5, 5>(query, reference, opcode);
+	return wrapped_sDTW<4, 5, 5>(query);
 }
