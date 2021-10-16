@@ -11,10 +11,12 @@ unpack_reference:
 	}
 }
 
-void reference_loader(AXI_VAL ref_stream[REF_LEN], seqval_t reference[REF_LEN]) {
+void reference_loader(AXI_VAL ref_stream[REF_LEN], seqval_t reference[REF_LEN], bool sel) {
 #pragma HLS INTERFACE axis port = ref_stream
 #pragma HLS INTERFACE bram port = reference
 #pragma HLS INTERFACE s_axilite port = return bundle = CONTROL_BUS
+	sel = true;
 	wrapped_loader<4, 5, 5>(ref_stream, reference);
+	sel = false;
 	return;
 }

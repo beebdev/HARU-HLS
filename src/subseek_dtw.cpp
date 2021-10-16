@@ -1,9 +1,6 @@
-
-
 #include <math.h>
 #include <stdio.h>
 #include "subseek_dtw.h"
-#include "reference_int.h"
 
 /* Finds the minimum of the three parameter values */
 value_t min3(value_t a, value_t b, value_t c) {
@@ -22,7 +19,7 @@ search_result_t sDTW(seqval_t x[QUERY_LEN], seqval_t y[REF_LEN]) {
 
 	/* Cost array - completely partitioned */
 	value_t cost[QUERY_LEN];
-#pragma HLS ARRAY_PARTITION variable=cost complete dim=1
+#pragma HLS ARRAY_PARTITION variable = cost complete dim = 1
 
 	search_result_t min;
 	min.dist = VALUE_INF;
@@ -42,7 +39,7 @@ cost_init_loop:
 
 seq_y_loop:
 	for (int c = 0; c < REF_LEN; c++) {
-#pragma HLS pipeline II=1
+#pragma HLS pipeline II = 1
 	seq_x_loop:
 		for (int r = 0; r < QUERY_LEN; r++) {
 			left = cost[r];
@@ -87,9 +84,9 @@ unpack_query:
 /* Top level design that will be synthesized into RTL */
 search_result_t subseek_dtw(AXI_VAL query[QUERY_LEN], seqval_t reference[REF_LEN]) {
 	/* Port IO interface */
-#pragma HLS INTERFACE axis port=query
-#pragma HLS INTERFACE bram port=reference
-#pragma HLS INTERFACE s_axilite port=return bundle=CONTROL_BUS
+#pragma HLS INTERFACE axis port = query
+#pragma HLS INTERFACE bram port = reference
+#pragma HLS INTERFACE s_axilite port = return bundle = CONTROL_BUS
 
 	/* Call wrapper for sDTW */
 	return wrapped_sDTW<4, 5, 5>(query, reference);
