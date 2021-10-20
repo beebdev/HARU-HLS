@@ -1,9 +1,9 @@
 #ifndef SQUIGGLE_SEARCH
 #define SQUIGGLE_SEARCH
 
+#include <stdint.h>
 #include <ap_axi_sdata.h>
 //#include "ap_int.h"
- #include <stdint.h>
 
 #define SEQ_BIT_WIDTH 16
 #define COST_BIT_WIDTH 18
@@ -26,8 +26,6 @@ typedef struct search_result_t {
 	bool ID;
 	unsigned int pos;
 	unsigned int dist;
-	// int x;
-	// int y;
 } search_result_t;
 
 /* Subsequence DTW Implementation */
@@ -45,7 +43,6 @@ valT min3(valT a, valT b, valT c) {
 
 template <typename seqT, typename valT>
 search_result_t sDTW(seqT x[QUERY_LEN], seqT y[REF_LEN], bool ID) {
-
 	/* Cost array - completely partitioned */
 	valT cost[QUERY_LEN];
 #pragma HLS ARRAY_PARTITION variable = cost complete dim = 1
@@ -54,8 +51,6 @@ search_result_t sDTW(seqT x[QUERY_LEN], seqT y[REF_LEN], bool ID) {
 	min.ID = ID;
 	min.dist = VALUE_INF;
 	min.pos = 0;
-	// min.x = x[0];
-	// min.y = y[0];
 
 	/* Init cost column */
 cost_init_loop:

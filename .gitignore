@@ -55,7 +55,8 @@ dkms.conf
 # project dependant
 top
 .vscode
-vivado*
+vivado.*
+vivado_hls.*
 sDTW_HLS/
 sDTW_standalone/
 sDTW_Wrapped/

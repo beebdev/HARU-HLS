@@ -7,7 +7,7 @@ set_part {xc7z020-clg484-1}
 create_clock -period 8.0 -name default
 # csim_design -clean
 csynth_design
-# export_design
+export_design
 close_project
 
 # open_project ref_loader
