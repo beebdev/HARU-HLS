@@ -6,16 +6,17 @@ open_solution "solution0"
 set_part {xc7z020-clg484-1}
 create_clock -period 8.0 -name default
 # csim_design -clean
-# csynth_design
-# export_design -evaluate vhdl -format ip_catalog
+csynth_design
+# export_design
 close_project
 
-open_project ref_loader
-set_top reference_loader
-add_files src/reference_bram.cpp
-open_solution "solution0"
-set_part {xc7z020-clg484-1}
-create_clock -period 8.0 -name default
+# open_project ref_loader
+# set_top reference_loader
+# add_files src/reference_bram.cpp
+# open_solution "solution0"
+# set_part {xc7z020-clg484-1}
+# create_clock -period 8.0 -name default
 # csynth_design
-close_project
+# export_design
+# close_project
 exit
